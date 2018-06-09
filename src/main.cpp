@@ -9,18 +9,18 @@ void setup() {
     Serial.begin(115200);
     Serial.println("\nBooting");
 
-    wifiSetup();
-    otaSetup();
-    pirSetup();
-    buttonSetup();
-    motorSetup();
+    wifi::setup();
+    ota::setup();
+    pir::setup();
+    button::setup();
+    motor::setup();
 
     Serial.println("Ready");
 }
 
 void loop() {
-    otaHandle();
-    pirHandle();
-    buttonHandle();
-    motorHandle();
+    ota::handle();
+    pir::handle();
+    button::handle();
+    motor::handle();
 }
