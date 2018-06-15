@@ -29,7 +29,6 @@ namespace button {
     }
 
     void buttonPressedEvent() {
-        Serial.println("Button pressed");
         motor::startSpin();
     }
 
@@ -39,18 +38,18 @@ namespace button {
         if (buttonRead == pressedState && !buttonPressed) {
             if (previousButtonRead == releasedState) {
                 // Button press started, reset timer
-                Serial.println("Button press started");
                 buttonPressTimeElapsed = 0;
             } else if (buttonPressTimeElapsed >= debounceDelay) {
                 // Button pressed long enough witout bouncing,
                 // threat is as actual press
+                Serial.println("Button pressed");
                 buttonPressedEvent();
                 buttonPressed = true;
             }
         } else if (buttonRead == releasedState && buttonPressed) {
             // Button is released
             buttonPressed = false;
-            Serial.println("Button press over");
+            Serial.println("Button released");
         }
 
         previousButtonRead = buttonRead;
