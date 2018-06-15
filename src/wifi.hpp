@@ -5,6 +5,8 @@
 #include "config.hpp"
 
 namespace wifi {
+    WiFiClient espClient;
+
     void setup() {
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);

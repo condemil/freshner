@@ -1,11 +1,14 @@
 #pragma once
 
 #include <Arduino.h>
+#include <functional>
 
 #include "config.hpp"
 #include "elapsedMillis.hpp"
 
 namespace motor {
+    std::function<void(bool)> callback;
+
     enum class State {
         off,
         cw,
@@ -31,6 +34,10 @@ namespace motor {
     void startSpin() {
         if (state != State::off) {
             return;
+        }
+
+        if (callback) {
+            callback(true);
         }
 
         digitalWrite(MOTOR_PIN_ON, HIGH); // Enable motor driver
@@ -70,6 +77,14 @@ namespace motor {
             Serial.println("Motor stop");
             state = State::off;
             delay(motorBrakeInterval); // Make synchronous to prevent power-consuming WiFi transmit
+
+            if (callback) {
+                callback(false);
+            }
         }
+    }
+
+    void setCallback(std::function<void(bool)> motorCallback) {
+        callback = motorCallback;
     }
 }

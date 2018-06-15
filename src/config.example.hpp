@@ -4,8 +4,11 @@
 #define WIFI_PASSWORD ""
 
 #define MQTT_HOST     ""
+#define MQTT_PORT     1883
 #define MQTT_LOGIN    ""
 #define MQTT_PASSWORD ""
+#define MQTT_TOPIC_COMMAND "freshner/json/set"
+#define MQTT_TOPIC_STATE "freshner/json/state"
 
 #define OTA_PASSWORD ""
 
