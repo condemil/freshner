@@ -26,7 +26,7 @@ namespace button {
     };
 
     void setup(){
-        pinMode(BUTTON_PIN, INPUT);
+        pinMode(config::IO_BUTTON, INPUT);
     }
 
     void buttonPressedEvent() {
@@ -34,7 +34,7 @@ namespace button {
     }
 
     void handle() {
-        int buttonRead = digitalRead(BUTTON_PIN);
+        int buttonRead = digitalRead(config::IO_BUTTON);
 
         if (buttonRead == pressedState && !buttonPressed) {
             if (previousButtonRead == releasedState) {

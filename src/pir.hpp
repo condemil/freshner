@@ -27,12 +27,12 @@ namespace pir {
 
 
     void setup() {
-        pinMode(PIR_PIN, INPUT);
-        pinMode(PIR_PIN_LED, OUTPUT);
+        pinMode(config::IO_PIR, INPUT);
+        pinMode(config::IO_LED, OUTPUT);
     }
 
     void handle() {
-        val = digitalRead(PIR_PIN);
+        val = digitalRead(config::IO_PIR);
         if (val == HIGH) {
             if (!pirActivated) {
                 pirActivated = true;
@@ -51,7 +51,7 @@ namespace pir {
     }
 
     void motionStarted() {
-        digitalWrite(PIR_PIN_LED, HIGH);
+        digitalWrite(config::IO_LED, HIGH);
         motionTimeElapsed = 0; // Reset timer
         if (!isMeasure) {
             startMeasure();
@@ -59,7 +59,7 @@ namespace pir {
     }
 
     void motionEnded() {
-        digitalWrite(PIR_PIN_LED, LOW);
+        digitalWrite(config::IO_LED, LOW);
         actionTime += motionTimeElapsed;
         logger::debugf("pir: motion time: %lus, total action time: %us, measure time elapsed: %lus\n",
             motionTimeElapsed / 1000, actionTime / 1000, measureTimeElapsed / 1000);

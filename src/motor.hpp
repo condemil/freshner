@@ -24,12 +24,12 @@ namespace motor {
     const unsigned int motorBrakeInterval = 200;
 
     void setup() {
-        pinMode(MOTOR_PIN_ON, OUTPUT);
-        pinMode(MOTOR_PIN_CW, OUTPUT);
-        pinMode(MOTOR_PIN_CCW, OUTPUT);
-        digitalWrite(MOTOR_PIN_ON, LOW);
-        digitalWrite(MOTOR_PIN_CW, LOW);
-        digitalWrite(MOTOR_PIN_CCW, LOW);
+        pinMode(config::IO_MOTOR_ON, OUTPUT);
+        pinMode(config::IO_MOTOR_CW, OUTPUT);
+        pinMode(config::IO_MOTOR_CCW, OUTPUT);
+        digitalWrite(config::IO_MOTOR_ON, LOW);
+        digitalWrite(config::IO_MOTOR_CW, LOW);
+        digitalWrite(config::IO_MOTOR_CCW, LOW);
     }
 
     void startSpin() {
@@ -41,8 +41,8 @@ namespace motor {
             callback(true);
         }
 
-        digitalWrite(MOTOR_PIN_ON, HIGH); // Enable motor driver
-        digitalWrite(MOTOR_PIN_CW, HIGH);
+        digitalWrite(config::IO_MOTOR_ON, HIGH); // Enable motor driver
+        digitalWrite(config::IO_MOTOR_CW, HIGH);
         logger::debugln(F("motor: spin CW"));
         state = State::cw;
         spinTimeElapsed = 0; // Reset timer
@@ -55,8 +55,8 @@ namespace motor {
 
         if (state == State::cw && spinTimeElapsed >= motorCWSpinInterval) {
             // change direction
-            digitalWrite(MOTOR_PIN_CCW, HIGH);
-            digitalWrite(MOTOR_PIN_CW, LOW);
+            digitalWrite(config::IO_MOTOR_CCW, HIGH);
+            digitalWrite(config::IO_MOTOR_CW, LOW);
             logger::debugln(F("motor: spin CCW"));
             state = State::ccw;
             spinTimeElapsed = 0; // Reset timer
@@ -64,7 +64,7 @@ namespace motor {
         }
         else if (state == State::ccw && spinTimeElapsed >= motorCCWSpinInterval) {
             // brake
-            digitalWrite(MOTOR_PIN_CW, HIGH);
+            digitalWrite(config::IO_MOTOR_CW, HIGH);
             logger::debugln(F("motor: brake"));
             state = State::brake;
             spinTimeElapsed = 0; // Reset timer
@@ -72,9 +72,9 @@ namespace motor {
         }
         else if (state == State::brake && spinTimeElapsed >= motorBrakeInterval) {
             // stop
-            digitalWrite(MOTOR_PIN_CW, LOW);
-            digitalWrite(MOTOR_PIN_CCW, LOW);
-            digitalWrite(MOTOR_PIN_ON, LOW); // Disable motor driver
+            digitalWrite(config::IO_MOTOR_CW, LOW);
+            digitalWrite(config::IO_MOTOR_CCW, LOW);
+            digitalWrite(config::IO_MOTOR_ON, LOW); // Disable motor driver
             logger::debugln(F("motor: stop"));
             state = State::off;
             delay(motorBrakeInterval); // Make synchronous to prevent power-consuming WiFi transmit

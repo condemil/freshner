@@ -2,6 +2,7 @@
 
 #include <ESP8266WiFi.h>
 #include <PubSubClient.h>
+#include <WiFiClient.h>
 
 #include "config.hpp"
 #include "elapsedMillis.hpp"
@@ -10,7 +11,13 @@
 #include "wifi.hpp"
 
 namespace mqtt {
-    PubSubClient client(wifi::espClient);
+    const bool WILL_RETAIN = true;
+    const uint8_t WILL_QOS = 1;
+    static const char *WILL_PAYLOAD_AVAILABLE = "online";
+    static const char *WILL_PAYLOAD_NOT_AVAILABLE = "offline";
+
+    WiFiClient _esp_client;
+    PubSubClient client(_esp_client);
     elapsedMillis reconnectTimeElapsed;
     const unsigned int reconnectDelay = 5000;
 
@@ -34,28 +41,28 @@ namespace mqtt {
         logger::debugf("mqtt: received motor callback: %d\n", isActive);
 
         if (isActive) {
-            publish(MQTT_TOPIC_STATE, "ON", true);
+            publish(config::MQTT_TOPIC_STATE, "ON", true);
         } else {
-            publish(MQTT_TOPIC_STATE, "OFF", true);
+            publish(config::MQTT_TOPIC_STATE, "OFF", true);
         }
     }
 
     void reconnect() {
         // Loop until we're reconnected
         logger::debugln(F("mqtt: attempting connection..."));
-        String clientId = "ESP8266Client-";
-        clientId += String(ESP.getChipId(), HEX);
 
-        if (client.connect(clientId.c_str(), MQTT_LOGIN, MQTT_PASSWORD)) {
+        if (client.connect(config::HOSTNAME, config::conf.mqtt_login, config::conf.mqtt_pass,
+            config::MQTT_TOPIC_AVAILABILITY, WILL_QOS, WILL_RETAIN, WILL_PAYLOAD_NOT_AVAILABLE)) {
             logger::debugln(F("mqtt: connected"));
-            client.subscribe(MQTT_TOPIC_COMMAND);
+            client.subscribe(config::MQTT_TOPIC_COMMAND);
+            client.publish(config::MQTT_TOPIC_AVAILABILITY, WILL_PAYLOAD_AVAILABLE);
         } else {
             logger::debugf("mqtt: connect failed, rc=%d try again in %u seconds\n", client.state(), reconnectDelay / 1000);
         }
     }
 
     void setup() {
-        client.setServer(MQTT_HOST, MQTT_PORT);
+        client.setServer(config::conf.mqtt_host, config::conf.mqtt_port);
         client.setCallback(callback);
         motor::setCallback(motorCallback);
     }
@@ -70,4 +77,4 @@ namespace mqtt {
             client.loop();
         }
     }
-}
+} // namespace mqtt

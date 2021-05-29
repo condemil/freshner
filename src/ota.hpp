@@ -8,7 +8,7 @@
 
 namespace ota {
 void setup() {
-    ArduinoOTA.setPassword(OTA_PASSWORD);
+    ArduinoOTA.setPassword(config::conf.ota_token);
 
     ArduinoOTA.onStart([]() {
         if (ArduinoOTA.getCommand() == U_FLASH) {

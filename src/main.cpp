@@ -13,7 +13,13 @@ void setup() {
     logger::setup();
     logger::debugln(F("\nmain: started"));
 
+    config::setup();
     wifi::setup();
+
+    if (strlen(config::conf.syslog_host) != 0) {
+        logger::setupSyslog(config::conf.syslog_host, config::conf.syslog_port, config::HOSTNAME, config::NAME);
+    }
+
     ota::setup();
     mqtt::setup();
     pir::setup();
@@ -24,6 +30,7 @@ void setup() {
 }
 
 void loop() {
+    wifi::handle();
     ota::handle();
     mqtt::handle();
     pir::handle();
