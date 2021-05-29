@@ -5,6 +5,7 @@
 
 #include "config.hpp"
 #include "elapsedMillis.hpp"
+#include "logger.hpp"
 
 namespace motor {
     std::function<void(bool)> callback;
@@ -42,7 +43,7 @@ namespace motor {
 
         digitalWrite(MOTOR_PIN_ON, HIGH); // Enable motor driver
         digitalWrite(MOTOR_PIN_CW, HIGH);
-        Serial.println("Motor spin CW");
+        logger::debugln(F("motor: spin CW"));
         state = State::cw;
         spinTimeElapsed = 0; // Reset timer
     }
@@ -56,7 +57,7 @@ namespace motor {
             // change direction
             digitalWrite(MOTOR_PIN_CCW, HIGH);
             digitalWrite(MOTOR_PIN_CW, LOW);
-            Serial.println("Motor spin CCW");
+            logger::debugln(F("motor: spin CCW"));
             state = State::ccw;
             spinTimeElapsed = 0; // Reset timer
             delay(motorCWSpinInterval); // Make synchronous to prevent power-consuming WiFi transmit
@@ -64,7 +65,7 @@ namespace motor {
         else if (state == State::ccw && spinTimeElapsed >= motorCCWSpinInterval) {
             // brake
             digitalWrite(MOTOR_PIN_CW, HIGH);
-            Serial.println("Motor brake");
+            logger::debugln(F("motor: brake"));
             state = State::brake;
             spinTimeElapsed = 0; // Reset timer
             delay(motorCCWSpinInterval); // Make synchronous to prevent power-consuming WiFi transmit
@@ -74,7 +75,7 @@ namespace motor {
             digitalWrite(MOTOR_PIN_CW, LOW);
             digitalWrite(MOTOR_PIN_CCW, LOW);
             digitalWrite(MOTOR_PIN_ON, LOW); // Disable motor driver
-            Serial.println("Motor stop");
+            logger::debugln(F("motor: stop"));
             state = State::off;
             delay(motorBrakeInterval); // Make synchronous to prevent power-consuming WiFi transmit
 

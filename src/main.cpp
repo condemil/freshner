@@ -1,4 +1,7 @@
+#include <Arduino.h>
+
 #include "button.hpp"
+#include "logger.hpp"
 #include "motor.hpp"
 #include "mqtt.hpp"
 #include "ota.hpp"
@@ -7,8 +10,8 @@
 
 void setup() {
     pinMode(1, OUTPUT); // GPIO 1 is used as TX
-    Serial.begin(115200);
-    Serial.println("\nBooting");
+    logger::setup();
+    logger::debugln(F("\nmain: started"));
 
     wifi::setup();
     ota::setup();
@@ -17,7 +20,7 @@ void setup() {
     button::setup();
     motor::setup();
 
-    Serial.println("Ready");
+    logger::debugln(F("main: setup is over"));
 }
 
 void loop() {

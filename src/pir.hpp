@@ -4,6 +4,7 @@
 
 #include "config.hpp"
 #include "elapsedMillis.hpp"
+#include "logger.hpp"
 #include "motor.hpp"
 
 namespace pir {
@@ -60,7 +61,7 @@ namespace pir {
     void motionEnded() {
         digitalWrite(PIR_PIN_LED, LOW);
         actionTime += motionTimeElapsed;
-        Serial.printf("Motion time: %lus, total action time: %us, measure time elapsed: %lus\n",
+        logger::debugf("pir: motion time: %lus, total action time: %us, measure time elapsed: %lus\n",
             motionTimeElapsed / 1000, actionTime / 1000, measureTimeElapsed / 1000);
     }
 
@@ -79,7 +80,7 @@ namespace pir {
             firePirEvent();
         }
 
-        Serial.printf("Measured interval: %us\n", actionTime / 1000);
+        logger::debugf("pir: measured interval: %us\n", actionTime / 1000);
 
         actionTime = 0;
         measureTimeElapsed = 0; // Reset timer

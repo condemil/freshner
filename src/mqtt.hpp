@@ -5,6 +5,7 @@
 
 #include "config.hpp"
 #include "elapsedMillis.hpp"
+#include "logger.hpp"
 #include "motor.hpp"
 #include "wifi.hpp"
 
@@ -26,11 +27,11 @@ namespace mqtt {
             motor::startSpin();
         }
 
-        Serial.printf("Message arrived [%s]: %s\n", topic, s.c_str());
+        logger::debugf("mqtt: message arrived [%s]: %s\n", topic, s.c_str());
     }
 
     void motorCallback(bool isActive) {
-        Serial.printf("Received motor callback: %d\n", isActive);
+        logger::debugf("mqtt: received motor callback: %d\n", isActive);
 
         if (isActive) {
             publish(MQTT_TOPIC_STATE, "ON", true);
@@ -41,15 +42,15 @@ namespace mqtt {
 
     void reconnect() {
         // Loop until we're reconnected
-        Serial.println("Attempting MQTT connection...");
+        logger::debugln(F("mqtt: attempting connection..."));
         String clientId = "ESP8266Client-";
         clientId += String(ESP.getChipId(), HEX);
 
         if (client.connect(clientId.c_str(), MQTT_LOGIN, MQTT_PASSWORD)) {
-            Serial.println("MQTT connected");
+            logger::debugln(F("mqtt: connected"));
             client.subscribe(MQTT_TOPIC_COMMAND);
         } else {
-            Serial.printf("MQTT connect failed, rc=%d try again in %u seconds\n", client.state(), reconnectDelay / 1000);
+            logger::debugf("mqtt: connect failed, rc=%d try again in %u seconds\n", client.state(), reconnectDelay / 1000);
         }
     }
 

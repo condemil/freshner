@@ -3,6 +3,7 @@
 #include <ESP8266WiFi.h>
 
 #include "config.hpp"
+#include "logger.hpp"
 
 namespace wifi {
     WiFiClient espClient;
@@ -11,10 +12,9 @@ namespace wifi {
         WiFi.mode(WIFI_STA);
         WiFi.begin(WIFI_SSID, WIFI_PASSWORD);
         while (WiFi.waitForConnectResult() != WL_CONNECTED) {
-            Serial.println("Connection Failed! Rebooting...");
+            logger::debugln(F("wifi: connection Failed! Rebooting..."));
             delay(5000);
             ESP.restart();
         }
-        Serial.printf("IP address: %s\n", WiFi.localIP().toString().c_str());
     }
 }

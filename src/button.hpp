@@ -4,6 +4,7 @@
 
 #include "config.hpp"
 #include "elapsedMillis.hpp"
+#include "logger.hpp"
 #include "motor.hpp"
 
 namespace button {
@@ -42,14 +43,14 @@ namespace button {
             } else if (buttonPressTimeElapsed >= debounceDelay) {
                 // Button pressed long enough witout bouncing,
                 // threat is as actual press
-                Serial.println("Button pressed");
+                logger::debugln(F("button: pressed"));
                 buttonPressedEvent();
                 buttonPressed = true;
             }
         } else if (buttonRead == releasedState && buttonPressed) {
             // Button is released
             buttonPressed = false;
-            Serial.println("Button released");
+            logger::debugln(F("button: released"));
         }
 
         previousButtonRead = buttonRead;
