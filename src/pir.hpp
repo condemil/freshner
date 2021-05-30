@@ -13,8 +13,8 @@ namespace pir {
 
     elapsedMillis measureTimeElapsed;
     elapsedMillis motionTimeElapsed;
-    const unsigned int measureInterval = 180000; // 3 minutes
-    const unsigned int actionInterval = 50000; // 50 seconds
+    const unsigned int measureInterval = 5 * 60 * 1000; // 5 minutes
+    const unsigned int actionInterval = 50 * 1000; // 50 seconds
     unsigned int actionTime = 0;
     bool isMeasure = false;
 

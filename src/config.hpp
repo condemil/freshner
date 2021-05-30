@@ -7,11 +7,11 @@
 
 namespace config {
 static const uint8_t IO_BUTTON = 0;
-static const uint8_t IO_PIR = 4;
-static const uint8_t IO_LED = 16;
-static const uint8_t IO_MOTOR_ON = 12;
-static const uint8_t IO_MOTOR_CW = 14;
-static const uint8_t IO_MOTOR_CCW = 13;
+static const uint8_t IO_PIR = 13;
+static const uint8_t IO_LED = 14;
+static const uint8_t IO_MOTOR_ON = 16;
+static const uint8_t IO_MOTOR_CW = 4;
+static const uint8_t IO_MOTOR_CCW = 5;
 
 static const char *NAME = "freshner";
 static const char *MQTT_TOPIC_STATE_FORMAT = "esp8266/%06x";
