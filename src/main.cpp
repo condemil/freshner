@@ -1,12 +1,17 @@
 #include <Arduino.h>
 
 #include "button.hpp"
+#include "config.hpp"
 #include "logger.hpp"
 #include "motor.hpp"
 #include "mqtt.hpp"
 #include "ota.hpp"
 #include "pir.hpp"
 #include "wifi.hpp"
+
+Button button;
+
+void onButtonClick();
 
 void setup() {
     pinMode(1, OUTPUT); // GPIO 1 is used as TX
@@ -23,7 +28,7 @@ void setup() {
     ota::setup();
     mqtt::setup();
     pir::setup();
-    button::setup();
+    button.setup(ButtonType::pullup, config::IO_BUTTON, onButtonClick);
     motor::setup();
 
     logger::debugln(F("main: setup is over"));
@@ -34,6 +39,10 @@ void loop() {
     ota::handle();
     mqtt::handle();
     pir::handle();
-    button::handle();
+    button.handle();
     motor::handle();
+}
+
+void onButtonClick() {
+    motor::startSpin();
 }
