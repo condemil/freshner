@@ -1,6 +1,5 @@
 #pragma once
 
-#include <ESP8266WiFi.h>
 #include <PubSubClient.h>
 #include <WiFiClient.h>
 
@@ -11,59 +10,78 @@
 #include "wifi.hpp"
 
 namespace mqtt {
-const bool WILL_RETAIN = true;
+const uint16_t RECONNECT_DELAY = 5000;
+const uint8_t COMMAND_RESET = 0;
+const uint8_t COMMAND_RESTART = 1;
+const uint8_t COMMAND_ON = 2;
 const uint8_t WILL_QOS = 1;
+const bool WILL_RETAIN = true;
 static const char *WILL_PAYLOAD_AVAILABLE = "online";
 static const char *WILL_PAYLOAD_NOT_AVAILABLE = "offline";
+static const char *MESSAGE_ON = "ON";
+static const char *MESSAGE_OFF = "OFF";
+
+std::function<void(uint8_t)> _onCommand;
 
 WiFiClient _esp_client;
-PubSubClient client(_esp_client);
-elapsedMillis reconnectTimeElapsed;
-const unsigned int reconnectDelay = 5000;
+PubSubClient _client(_esp_client);
+elapsedMillis _reconnect_time_elapsed;
+bool connected = false;
 
-void publish(const char *topic, const char *message, bool retained) {
-    client.publish(topic, message, retained);
+void publish(const char *topic, const char *message) {
+    _client.publish(topic, message, true);
 }
 
-void callback(char *topic, uint8_t *payload, unsigned int length) {
-    payload[length] = '\0'; // TODO: find a better way, this will fail if payload will be exactly MQTT_MAX_PACKET_SIZE
-
-    String s = String((char*)payload);
-
-    if (s == "ON") {
-        motor::startSpin();
+void _callback(char *topic, byte *payload, unsigned int length) {
+    if (length >= MQTT_MAX_PACKET_SIZE) {
+        logger::errorln(F("mqtt: payload is too long"));
+        return;
     }
 
-    logger::debugf("mqtt: message arrived [%s]: %s\n", topic, s.c_str());
+    if (strncmp((char *)payload, "RESET", length) == 0) {
+        _onCommand(COMMAND_RESET);
+    } else if (strncmp((char *)payload, "RESTART", length) == 0) {
+        _onCommand(COMMAND_RESTART);
+    } else if (strncmp((char *)payload, "ON", length) == 0) {
+        _onCommand(COMMAND_ON);
+    }
+
+    logger::debugf("mqtt: message arrived [%s]: %s\n", topic, payload);
 }
 
-void reconnect() {
-    // Loop until we're reconnected
-    logger::debugln(F("mqtt: attempting connection..."));
+void _reconnect() {
+    logger::debugln(F("mqtt: attempting to connect"));
 
-    if (client.connect(config::HOSTNAME, config::conf.mqtt_login, config::conf.mqtt_pass,
-        config::MQTT_TOPIC_AVAILABILITY, WILL_QOS, WILL_RETAIN, WILL_PAYLOAD_NOT_AVAILABLE)) {
+    connected = _client.connect(config::HOSTNAME, config::conf.mqtt_login, config::conf.mqtt_pass,
+        config::MQTT_TOPIC_AVAILABILITY, WILL_QOS, WILL_RETAIN, WILL_PAYLOAD_NOT_AVAILABLE);
+
+    if (connected) {
         logger::debugln(F("mqtt: connected"));
-        client.subscribe(config::MQTT_TOPIC_COMMAND);
-        client.publish(config::MQTT_TOPIC_AVAILABILITY, WILL_PAYLOAD_AVAILABLE);
+        _client.subscribe(config::MQTT_TOPIC_COMMAND);
+        logger::debugf("mqtt: subscribed to %s\n", config::MQTT_TOPIC_COMMAND);
+        _client.publish(config::MQTT_TOPIC_AVAILABILITY, WILL_PAYLOAD_AVAILABLE);
     } else {
-        logger::debugf("mqtt: connect failed, rc=%d try again in %u seconds\n", client.state(), reconnectDelay / 1000);
+        logger::debugf(
+            "mqtt: connect failed, rc=%d try again in %u seconds\n", _client.state(), RECONNECT_DELAY / 1000);
     }
 }
 
-void setup() {
-    client.setServer(config::conf.mqtt_host, config::conf.mqtt_port);
-    client.setCallback(callback);
+void setup(std::function<void(uint8_t)> onCommand) {
+    _onCommand = onCommand;
+
+    _client.setServer(config::conf.mqtt_host, config::conf.mqtt_port);
+    _client.setCallback(_callback);
 }
 
 void handle() {
-    if (!client.connected()) {
-        if (reconnectTimeElapsed >= reconnectDelay) {
-            reconnectTimeElapsed = 0; // Reset timer
-            reconnect();
-        }
-    } else {
-        client.loop();
+    if (_client.connected()) {
+        _client.loop();
+        return;
+    }
+
+    if (_reconnect_time_elapsed >= RECONNECT_DELAY) {
+        _reconnect_time_elapsed = 0; // reset timer
+        _reconnect();
     }
 }
 } // namespace mqtt

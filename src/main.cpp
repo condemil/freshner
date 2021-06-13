@@ -11,6 +11,7 @@
 
 Button button;
 
+void onMQTTCommand(uint8_t);
 void onButtonClick();
 void onMotor(bool);
 
@@ -27,7 +28,7 @@ void setup() {
     }
 
     ota::setup();
-    mqtt::setup();
+    mqtt::setup(onMQTTCommand);
     pir::setup();
     button.setup(ButtonType::pullup, config::IO_BUTTON, onButtonClick);
     motor::setup(onMotor);
@@ -48,12 +49,27 @@ void onButtonClick() {
     motor::startSpin();
 }
 
+void onMQTTCommand(uint8_t command) {
+    switch (command) {
+    case mqtt::COMMAND_RESET:
+        config::truncate();
+        ESP.restart();
+        break;
+    case mqtt::COMMAND_RESTART:
+        ESP.restart();
+        break;
+    case mqtt::COMMAND_ON:
+        motor::startSpin();
+        break;
+    }
+}
+
 void onMotor(bool enabled) {
     if (enabled) {
-        mqtt::publish(config::MQTT_TOPIC_STATE, "ON", true);
+        mqtt::publish(config::MQTT_TOPIC_STATE, mqtt::MESSAGE_ON);
     }
 
     if (!enabled) {
-        mqtt::publish(config::MQTT_TOPIC_STATE, "OFF", true);
+        mqtt::publish(config::MQTT_TOPIC_STATE, mqtt::MESSAGE_OFF);
     }
 }
