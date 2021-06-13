@@ -12,6 +12,7 @@
 Button button;
 
 void onButtonClick();
+void onMotor(bool);
 
 void setup() {
     pinMode(1, OUTPUT); // GPIO 1 is used as TX
@@ -29,7 +30,7 @@ void setup() {
     mqtt::setup();
     pir::setup();
     button.setup(ButtonType::pullup, config::IO_BUTTON, onButtonClick);
-    motor::setup();
+    motor::setup(onMotor);
 
     logger::debugln(F("main: setup is over"));
 }
@@ -45,4 +46,14 @@ void loop() {
 
 void onButtonClick() {
     motor::startSpin();
+}
+
+void onMotor(bool enabled) {
+    if (enabled) {
+        mqtt::publish(config::MQTT_TOPIC_STATE, "ON", true);
+    }
+
+    if (!enabled) {
+        mqtt::publish(config::MQTT_TOPIC_STATE, "OFF", true);
+    }
 }

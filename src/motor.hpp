@@ -11,10 +11,11 @@ namespace motor {
 std::function<void(bool)> callback;
 
 enum class State {
-    off,
+    start,
     cw,
     ccw,
     brake,
+    off
 };
 
 State state = State::off;
@@ -23,7 +24,9 @@ const unsigned int motorCWSpinInterval = 1000;
 const unsigned int motorCCWSpinInterval = 400;
 const unsigned int motorBrakeInterval = 200;
 
-void setup() {
+void setup(std::function<void(bool)> motorCallback) {
+    callback = motorCallback;
+
     pinMode(config::IO_MOTOR_ON, OUTPUT);
     pinMode(config::IO_MOTOR_CW, OUTPUT);
     pinMode(config::IO_MOTOR_CCW, OUTPUT);
@@ -37,15 +40,14 @@ void startSpin() {
         return;
     }
 
-    if (callback) {
-        callback(true);
-    }
+    state = State::start;
+    callback(true);
+}
 
-    digitalWrite(config::IO_MOTOR_ON, HIGH); // Enable motor driver
-    digitalWrite(config::IO_MOTOR_CW, HIGH);
-    logger::debugln(F("motor: spin CW"));
-    state = State::cw;
-    spinTimeElapsed = 0; // Reset timer
+void setMotor(uint8_t enable, uint8_t cw, uint8_t ccw) {
+    digitalWrite(config::IO_MOTOR_ON, enable);
+    digitalWrite(config::IO_MOTOR_CW, cw);
+    digitalWrite(config::IO_MOTOR_CCW, ccw);
 }
 
 void handle() {
@@ -53,39 +55,32 @@ void handle() {
         return;
     }
 
+    if (state == State::start) {
+        state = State::cw;
+        setMotor(HIGH, HIGH, LOW);
+        spinTimeElapsed = 0;
+        return;
+    }
+
     if (state == State::cw && spinTimeElapsed >= motorCWSpinInterval) {
-        // change direction
-        digitalWrite(config::IO_MOTOR_CCW, HIGH);
-        digitalWrite(config::IO_MOTOR_CW, LOW);
-        logger::debugln(F("motor: spin CCW"));
         state = State::ccw;
-        spinTimeElapsed = 0; // Reset timer
-        delay(motorCWSpinInterval); // Make synchronous to prevent power-consuming WiFi transmit
+        setMotor(HIGH, LOW, HIGH);
+        spinTimeElapsed = 0;
+        return;
     }
-    else if (state == State::ccw && spinTimeElapsed >= motorCCWSpinInterval) {
-        // brake
-        digitalWrite(config::IO_MOTOR_CW, HIGH);
-        logger::debugln(F("motor: brake"));
+
+
+    if (state == State::ccw && spinTimeElapsed >= motorCCWSpinInterval) {
         state = State::brake;
-        spinTimeElapsed = 0; // Reset timer
-        delay(motorCCWSpinInterval); // Make synchronous to prevent power-consuming WiFi transmit
+        setMotor(HIGH, HIGH, HIGH);
+        spinTimeElapsed = 0;
+        return;
     }
-    else if (state == State::brake && spinTimeElapsed >= motorBrakeInterval) {
-        // stop
-        digitalWrite(config::IO_MOTOR_CW, LOW);
-        digitalWrite(config::IO_MOTOR_CCW, LOW);
-        digitalWrite(config::IO_MOTOR_ON, LOW); // Disable motor driver
-        logger::debugln(F("motor: stop"));
+
+    if (state == State::brake && spinTimeElapsed >= motorBrakeInterval) {
         state = State::off;
-        delay(motorBrakeInterval); // Make synchronous to prevent power-consuming WiFi transmit
-
-        if (callback) {
-            callback(false);
-        }
+        setMotor(LOW, LOW, LOW);
+        callback(false);
     }
-}
-
-void setCallback(std::function<void(bool)> motorCallback) {
-    callback = motorCallback;
 }
 } // namespace mqtt

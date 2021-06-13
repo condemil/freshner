@@ -37,16 +37,6 @@ void callback(char *topic, uint8_t *payload, unsigned int length) {
     logger::debugf("mqtt: message arrived [%s]: %s\n", topic, s.c_str());
 }
 
-void motorCallback(bool isActive) {
-    logger::debugf("mqtt: received motor callback: %d\n", isActive);
-
-    if (isActive) {
-        publish(config::MQTT_TOPIC_STATE, "ON", true);
-    } else {
-        publish(config::MQTT_TOPIC_STATE, "OFF", true);
-    }
-}
-
 void reconnect() {
     // Loop until we're reconnected
     logger::debugln(F("mqtt: attempting connection..."));
@@ -64,7 +54,6 @@ void reconnect() {
 void setup() {
     client.setServer(config::conf.mqtt_host, config::conf.mqtt_port);
     client.setCallback(callback);
-    motor::setCallback(motorCallback);
 }
 
 void handle() {
